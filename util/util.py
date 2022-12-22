@@ -3,7 +3,13 @@ from sklearn.compose import ColumnTransformer
 from sklearn.metrics import accuracy_score, make_scorer
 import pandas as pd
 import numpy as np
+from conf import settings
 
+
+def read_data():
+  #this function reads data
+  data = pd.read_csv(settings.dataset)
+  return data
 
 def get_pipeline(categorical : list, numeric_features : list, model):
   #this function creates a pipeline for the model, applies necessary transformations
