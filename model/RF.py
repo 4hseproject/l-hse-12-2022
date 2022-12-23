@@ -3,6 +3,7 @@ from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import accuracy_score, make_scorer
+from sklearn.model_selection import train_test_split
 from util.util import load_model, save_model, get_pipeline, evaluate, read_data, read_settings
 from conf import settings, logging
 
