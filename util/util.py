@@ -3,7 +3,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.metrics import accuracy_score, make_scorer
 import pandas as pd
 import numpy as np
-from conf import settings
+from conf import settings, logging
 from dynaconf import Dynaconf
 
 
@@ -11,10 +11,12 @@ def read_data():
   #this function reads data
   settings = read_settings()
   data = pd.read_csv(settings.dataset)
+  logging.info('got data')
   return data
 
 
 def read_settings():
+  logging.info('read settings')
   return Dynaconf(settings_files=["conf/settings.toml"])
   
 
@@ -43,10 +45,14 @@ def evaluate(predictions:list, test_labels:list): -> float
 def load_model(filename : str, model):
     #loading the model from pkl file
     model = pickle.load(open(filename, 'rb')) #To load saved model from local directory
+    logging.info('loaded model')
     return model
   
   
 def save_model(filename : str):
     #dumping the model to the pkl file
-    pickle.dump(model, open(filename, 'wb')) #Saving the model
+    #Saving the model
+    pickle.dump(model, open(filename, 'wb'))
+    logging.info('saved model')
+   
     
