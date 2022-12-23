@@ -3,7 +3,7 @@ from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import accuracy_score, make_scorer
-from utils import load_model, save_model, get_pipeline, evaluate, read_data, read_settings
+from util.util import load_model, save_model, get_pipeline, evaluate, read_data, read_settings
 from conf import settings
 
 
@@ -104,7 +104,19 @@ def training():
     save_model(settings.dt_conf_2,m2)
 
     
-def get_predictions():
+def get_predictions(values, m_num):
     settings = read_settings()
-    model = load_model(settings.dt_conf)
+    if m_num = 1:
+        try:
+            model = load_model(settings.dt_conf)
+        except:
+            training()
+            model = load_model(settings.dt_conf)
+    else:
+        try:
+            model = load_model(settings.dt_conf_2)
+        except:
+            training()
+            model = load_model(settings.dt_conf_2)
+    return model.predict(values)
     
