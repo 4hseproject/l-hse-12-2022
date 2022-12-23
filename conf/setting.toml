@@ -2,5 +2,7 @@
 data_set = "https://raw.githubusercontent.com/5x12/ml-cookbook/master/supplements/data/heart.csv"
 target = 'target'
 
+
 [MODEL]
 dt_conf = "model/conf/RF.pkl"
+dt_conf_2 = "model/conf/GB.pkl"
