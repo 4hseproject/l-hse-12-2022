@@ -21,9 +21,14 @@ def read_settings():
   
 
 def get_pipeline(categorical : list, numeric_features : list, model):
-  #this function creates a pipeline for the model, applies necessary transformations
-  column_transformer = ColumnTransformer([
+
+  if len(categorical) >1:
+    column_transformer = ColumnTransformer([
       ('ohe', OneHotEncoder(handle_unknown="ignore"), categorical),
+      ('scaling', StandardScaler(), numeric_features)
+  ])
+  else:
+    column_transformer = ColumnTransformer([
       ('scaling', StandardScaler(), numeric_features)
   ])
 
@@ -32,6 +37,8 @@ def get_pipeline(categorical : list, numeric_features : list, model):
       ('regression', model)
   ])
   return pipeline
+
+
 
 
 def evaluate(predictions:list, test_labels:list): -> float
