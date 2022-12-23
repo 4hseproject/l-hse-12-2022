@@ -1,7 +1,6 @@
 #code
-from model import predict
-from conf import settings
-from conf import logging
+from model.RF import get_predictions
+from conf import settings, logging
 
 
 #user is asked to choose which model he wants to use for predictions
