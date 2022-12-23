@@ -6,3 +6,6 @@ target = 'target'
 [MODEL]
 dt_conf = "model/conf/RF.pkl"
 dt_conf_2 = "model/conf/GB.pkl"
+
+[PREDICTION]
+VALUES = [42,0,2,120,209,0,1,175,0,0,1,0,2]
