@@ -4,19 +4,21 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import accuracy_score, make_scorer
 from util.util import load_model, save_model, get_pipeline, evaluate, read_data, read_settings
-from conf import settings
+from conf import settings, logging
 
 
-def split(X,y):
+def split():
     # Splitting variables into train and test
     settings = read_settings()
     data = read_data()
     X = data.loc[:, data.columns != settings.target]
     y = data[settings.target]
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state = 42)
+    logging.info('split the data')
+    return X_train, X_test, y_train, y_test
 
     
-def gridsearch(rf, num):
+def gridsearch(X_train, y_train, rf, num):
     if num ==1:
         # Number of trees in random forest
         splitter = ['best','random']
@@ -37,11 +39,13 @@ def gridsearch(rf, num):
                    'criterion': criterion}
         rf_random = RandomizedSearchCV(estimator = rf, param_distributions = random_grid, n_iter = 100, cv = 3,
                                        verbose=2, random_state=42, n_jobs = -1, scoring = make_scorer(accuracy_score))
-        splitter = rf_random[1].best_params_['splitter']
-        criterion = rf_random[1].best_params_['criterion']
-        max_depth = [int(x) for x in np.linspace(round(rf_random[1].best_params_['max_depth'] * 0.75,0), round(rf_random[1].best_params_['max_depth'] * 1.25,0), num = 5)] 
-        min_samples_split = [rf_random[1].best_params_['max_depth']-1, rf_random[1].best_params_['max_depth'] ,rf_random[1].best_params_['max_depth']+1]
-        min_samples_leaf = [rf_random[1].best_params_['min_samples_leaf']-1, rf_random[1].best_params_['min_samples_leaf'] ,rf_random[1].best_params_['min_samples_leaf']+1]
+        pipeline3 = get_pipeline([''],[X_train.columns.values] , rf_random)
+        model3 = pipeline3.fit(X_train, y_train)
+        splitter = model3[1].best_params_['splitter']
+        criterion = model3[1].best_params_['criterion']
+        max_depth = [int(x) for x in np.linspace(round(model3[1].best_params_['max_depth'] * 0.75,0), round(model3[1].best_params_['max_depth'] * 1.25,0), num = 5)] 
+        min_samples_split = [model3[1].best_params_['max_depth']-1, model3[1].best_params_['max_depth'] ,model3[1].best_params_['max_depth']+1]
+        min_samples_leaf = [model3[1].best_params_['min_samples_leaf']-1, model3[1].best_params_['min_samples_leaf'] ,model3[1].best_params_['min_samples_leaf']+1]
         # Create the parameter grid based on the results of random search 
         param_grid = {
             'splitter': [splitter],
@@ -54,6 +58,8 @@ def gridsearch(rf, num):
 
         grid_search = GridSearchCV(estimator = rf, param_grid = param_grid, 
                               cv = 3, n_jobs = -1, verbose = 2, scoring = make_scorer(accuracy_score))
+        pipeline4 = get_pipeline([''],[X_train.columns.values] , grid_search)
+        model4 = pipeline4.fit(X_train, y_train)
     else:
         # Number of trees in random forest
         loss = ['log_loss','exponential','deviance']
@@ -74,11 +80,13 @@ def gridsearch(rf, num):
                    'criterion': criterion}
         rf_random = RandomizedSearchCV(estimator = rf, param_distributions = random_grid, n_iter = 100, cv = 3,
                                        verbose=2, random_state=42, n_jobs = -1, scoring = make_scorer(accuracy_score))
-        loss = rf_random[1].best_params_['loss']
-        criterion = rf_random[1].best_params_['criterion']
-        n_estimators = [int(x) for x in np.linspace(round(rf_random[1].best_params_['n_estimators'] * 0.9,0), round(rf_random[1].best_params_['n_estimators'] * 1.1,0), num = 3)] 
-        learning_rate = [rf_random[1].best_params_['learning_rate']-0.03, rf_random[1].best_params_['learning_rate'] ,rf_random[1].best_params_['learning_rate']+0.03]
-        min_samples_leaf = [rf_random[1].best_params_['min_samples_leaf']-1, rf_random[1].best_params_['min_samples_leaf'] ,rf_random[1].best_params_['min_samples_leaf']+1]
+        pipeline3 = get_pipeline([''],[X_train.columns.values] , rf_random)
+        model3 = pipeline3.fit(X_train, y_train)
+        loss = model3[1].best_params_['loss']
+        criterion = model3[1].best_params_['criterion']
+        n_estimators = [int(x) for x in np.linspace(round(model3[1].best_params_['n_estimators'] * 0.9,0), round(model3[1].best_params_['n_estimators'] * 1.1,0), num = 3)] 
+        learning_rate = [model3[1].best_params_['learning_rate']-0.03, model3[1].best_params_['learning_rate'] ,model3[1].best_params_['learning_rate']+0.03]
+        min_samples_leaf = [model3[1].best_params_['min_samples_leaf']-1, model3[1].best_params_['min_samples_leaf'] ,model3[1].best_params_['min_samples_leaf']+1]
         # Create the parameter grid based on the results of random search 
         param_grid = {
             'loss': [loss],
@@ -91,6 +99,9 @@ def gridsearch(rf, num):
 
         grid_search = GridSearchCV(estimator = rf, param_grid = param_grid, 
                               cv = 3, n_jobs = -1, verbose = 2, scoring = make_scorer(accuracy_score))
+        pipeline4 = get_pipeline([''],[X_train.columns.values] , grid_search)
+        model4 = pipeline4.fit(X_train, y_train)
+    logging.info('got the best estimator')
     return grid_search
     
     
@@ -98,10 +109,12 @@ def training():
     settings = read_settings()
     clf = RandomForestClassifier(n_jobs = -1, random_state = 42)
     m2 = GradientBoostingClassifier(random_state = 42)
-    gridsearch(clf, 1)
-    gridsearch(m2, 2)
+    X_train, X_test, y_train, y_test = split()
+    gridsearch(X_train, y_train, clf, 1)
+    gridsearch(X_train, y_train, m2, 2)
     save_model(settings.dt_conf,clf)
     save_model(settings.dt_conf_2,m2)
+    logging.info('trained the models')
 
     
 def get_predictions(values, m_num):
@@ -110,12 +123,14 @@ def get_predictions(values, m_num):
         try:
             model = load_model(settings.dt_conf)
         except:
+            logging.info('need to train the forest')
             training()
             model = load_model(settings.dt_conf)
     else:
         try:
             model = load_model(settings.dt_conf_2)
         except:
+            logging.info('need to train the boosting')
             training()
             model = load_model(settings.dt_conf_2)
     return model.predict(values)
